@@ -36,7 +36,37 @@ const getPatients = async (req, res) => {
         });
     }
 };
+// GET LOGGED-IN PATIENT PROFILE
+const getMyPatientProfile = async (req, res) => {
+    try {
+        if (!req.user.patient) {
+            return res.status(404).json({
+                success: false,
+                message: "No patient profile linked to this account."
+            });
+        }
 
+        const patient = await Patient.findById(req.user.patient);
+
+        if (!patient) {
+            return res.status(404).json({
+                success: false,
+                message: "Patient profile not found."
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: patient
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
 // GET PATIENT BY ID
 const getPatientById = async (req, res) => {
     try {
@@ -118,6 +148,7 @@ module.exports = {
     createPatient,
     getPatients,
     getPatientById,
+    getMyPatientProfile,
     updatePatient,
     deletePatient
 };

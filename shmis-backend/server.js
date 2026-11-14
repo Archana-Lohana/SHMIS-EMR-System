@@ -13,6 +13,7 @@ const clinicalRecordRoutes = require("./routes/clinicalRecordRoutes");
 const prescriptionRoutes = require("./routes/prescriptionRoutes");
 const labTestRoutes = require("./routes/labTestRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use("/api/clinical-records", clinicalRecordRoutes);
 app.use("/api/prescriptions", prescriptionRoutes);
 app.use("/api/lab-tests", labTestRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/auth", authRoutes);
 
 // Server
 const PORT = process.env.PORT || 5000;

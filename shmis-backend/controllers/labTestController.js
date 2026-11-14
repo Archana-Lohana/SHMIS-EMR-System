@@ -54,7 +54,36 @@ const createLabTest = async (req, res) => {
         });
     }
 };
+// GET MY LAB TESTS - Patient only
+const getMyLabTests = async (req, res) => {
+    try {
+        if (!req.user.patient) {
+            return res.status(404).json({
+                success: false,
+                message: "No patient profile linked to this account."
+            });
+        }
 
+        const tests = await LabTest.find({
+            patient: req.user.patient
+        })
+            .populate("patient", "name patientCode contactNumber")
+            .populate("doctor", "name doctorCode specialization")
+            .populate("hospital", "name hospitalCode");
+
+        res.status(200).json({
+            success: true,
+            count: tests.length,
+            data: tests
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
 // GET ALL
 const getLabTests = async (req, res) => {
     try {
@@ -167,6 +196,7 @@ module.exports = {
     createLabTest,
     getLabTests,
     getLabTestById,
+    getMyLabTests,
     updateLabTest,
     deleteLabTest
 };

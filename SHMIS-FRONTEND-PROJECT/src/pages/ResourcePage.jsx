@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { mineAsPatient } from "../auth";
 import { ArrowDown, ArrowUp, Download, Plus, Search } from "lucide-react";
-import { deleteItem, errorText, useList } from "../api";
+import { createPatientAccount, deleteItem, errorText, useList } from "../api";
 import { downloadCSV, number } from "../utils";
 import Drawer from "../components/Drawer";
 import RecordForm from "../components/RecordForm";
@@ -11,7 +11,12 @@ import StatusBadge from "../components/StatusBadge";
 const PAGE_SIZE = 12;
 
 export default function ResourcePage({ config, toast, user, writable = true }) {
-  const { rows: allRows, loading, error, reload } = useList(config.endpoint);
+  const apiEndpoint =
+  user?.role === "patient" && config.endpoint !== "/patients"
+    ? `${config.endpoint}/my`
+    : config.endpoint;
+
+const { rows: allRows, loading, error, reload } = useList(apiEndpoint);
   // Patients only see their own records.
   const rows = useMemo(() => (user?.role === "patient" ? mineAsPatient(user, allRows) : allRows), [allRows, user]);
   const [q, setQ] = useState("");
@@ -21,6 +26,10 @@ export default function ResourcePage({ config, toast, user, writable = true }) {
   const [panel, setPanel] = useState(null); // { mode: "view" | "form", row }
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showLoginForm, setShowLoginForm] = useState(false);
+const [loginUsername, setLoginUsername] = useState("");
+const [loginPassword, setLoginPassword] = useState("");
+const [creatingLogin, setCreatingLogin] = useState(false);
 
   const visible = useMemo(() => {
     const t = q.trim().toLowerCase();
@@ -63,6 +72,30 @@ export default function ResourcePage({ config, toast, user, writable = true }) {
       setDeleting(false);
     }
   }
+  async function handleCreateLogin(e) {
+  e.preventDefault();
+
+  if (!panel?.row?._id) return;
+
+  setCreatingLogin(true);
+
+  try {
+    await createPatientAccount({
+      patientId: panel.row._id,
+      username: loginUsername,
+      password: loginPassword
+    });
+
+    toast("Patient login account created successfully.");
+    setShowLoginForm(false);
+    setLoginUsername("");
+    setLoginPassword("");
+  } catch (e) {
+    toast(errorText(e), "bad");
+  } finally {
+    setCreatingLogin(false);
+  }
+}
 
   function exportCSV() {
     downloadCSV(
@@ -190,13 +223,74 @@ export default function ResourcePage({ config, toast, user, writable = true }) {
               </div>
             ) : (
               <>
-                <button className="text-btn danger" onClick={() => setConfirmDelete(true)}>Delete</button>
-                <button className="btn primary" onClick={() => setPanel({ mode: "form", row: panel.row })}>Edit</button>
+                <>
+  {isPatient && user?.role === "admin" && (
+    <button
+      className="btn"
+      onClick={() => setShowLoginForm(true)}
+    >
+      Create Login
+    </button>
+  )}
+
+  <button className="text-btn danger" onClick={() => setConfirmDelete(true)}>Delete</button>
+  <button className="btn primary" onClick={() => setPanel({ mode: "form", row: panel.row })}>Edit</button>
+</>
               </>
             )
           }
         >
           <RecordView config={config} row={panel.row} isPatient={isPatient} />
+          {showLoginForm && isPatient && user?.role === "admin" && (
+  <form onSubmit={handleCreateLogin} className="form-grid">
+    <h3>Create Patient Login</h3>
+
+    <p>
+      Create login credentials for {panel.row.name}.
+    </p>
+
+    <label>
+      Username
+      <input
+        className="input"
+        type="text"
+        value={loginUsername}
+        onChange={(e) => setLoginUsername(e.target.value)}
+        placeholder="Enter username"
+        required
+      />
+    </label>
+
+    <label>
+      Password
+      <input
+        className="input"
+        type="password"
+        value={loginPassword}
+        onChange={(e) => setLoginPassword(e.target.value)}
+        placeholder="Minimum 8 characters"
+        minLength={8}
+        required
+      />
+    </label>
+
+    <button
+      type="submit"
+      className="btn primary"
+      disabled={creatingLogin}
+    >
+      {creatingLogin ? "Creating..." : "Create Account"}
+    </button>
+
+    <button
+      type="button"
+      className="btn"
+      onClick={() => setShowLoginForm(false)}
+    >
+      Cancel
+    </button>
+  </form>
+)}
         </Drawer>
       )}
 

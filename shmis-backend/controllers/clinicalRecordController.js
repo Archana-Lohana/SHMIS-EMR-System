@@ -80,7 +80,36 @@ const createClinicalRecord = async (req, res) => {
         });
     }
 };
+// GET MY CLINICAL RECORDS - Patient only
+const getMyClinicalRecords = async (req, res) => {
+    try {
+        if (!req.user.patient) {
+            return res.status(404).json({
+                success: false,
+                message: "No patient profile linked to this account."
+            });
+        }
 
+        const records = await ClinicalRecord.find({
+            patient: req.user.patient
+        })
+            .populate("patient", "name patientCode contactNumber")
+            .populate("doctor", "name doctorCode specialization")
+            .populate("hospital", "name hospitalCode");
+
+        res.status(200).json({
+            success: true,
+            count: records.length,
+            data: records
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
 
 // GET ALL Clinical Records
 const getClinicalRecords = async (req, res) => {
@@ -200,6 +229,7 @@ module.exports = {
     createClinicalRecord,
     getClinicalRecords,
     getClinicalRecordById,
+    getMyClinicalRecords,
     updateClinicalRecord,
     deleteClinicalRecord
 };

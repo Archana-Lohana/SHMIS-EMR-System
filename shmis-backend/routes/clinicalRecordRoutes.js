@@ -1,3 +1,4 @@
+
 const express = require("express");
 const router = express.Router();
 
@@ -5,18 +6,29 @@ const {
     createClinicalRecord,
     getClinicalRecords,
     getClinicalRecordById,
+    getMyClinicalRecords,
     updateClinicalRecord,
     deleteClinicalRecord
 } = require("../controllers/clinicalRecordController");
 
-router.post("/", createClinicalRecord);
+const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 
-router.get("/", getClinicalRecords);
+// CREATE - Admin only
+router.post("/", protect, authorizeRoles("admin"), createClinicalRecord);
 
-router.get("/:id", getClinicalRecordById);
+// READ ALL - Admin and Doctor
+router.get("/", protect, authorizeRoles("admin", "doctor"), getClinicalRecords);
 
-router.put("/:id", updateClinicalRecord);
+// READ OWN RECORDS - Patient only
+router.get("/my", protect, authorizeRoles("patient"), getMyClinicalRecords);
 
-router.delete("/:id", deleteClinicalRecord);
+// READ SINGLE - Admin and Doctor
+router.get("/:id", protect, authorizeRoles("admin", "doctor"), getClinicalRecordById);
+
+// UPDATE - Admin only
+router.put("/:id", protect, authorizeRoles("admin"), updateClinicalRecord);
+
+// DELETE - Admin only
+router.delete("/:id", protect, authorizeRoles("admin"), deleteClinicalRecord);
 
 module.exports = router;

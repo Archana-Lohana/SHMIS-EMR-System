@@ -57,7 +57,11 @@ export default function Dashboard({ go, user }) {
   useEffect(() => {
     let alive = true;
     const keys = needs[role];
-    Promise.allSettled(keys.map((k) => getList(paths[k]))).then((res) => {
+    Promise.allSettled(
+  keys.map((k) =>
+    getList(role === "patient" ? `${paths[k]}/my` : paths[k])
+  )
+).then((res) => {
       if (!alive) return;
       if (res.every((r) => r.status === "rejected")) return setFailed(true);
       setD(Object.fromEntries(keys.map((k, i) => [k, res[i].status === "fulfilled" ? res[i].value : []])));
@@ -69,16 +73,14 @@ export default function Dashboard({ go, user }) {
   today.setHours(0, 0, 0, 0);
 
   // Each role only sees the rows that are theirs.
-  let appts = d?.appointments || [];
-  let labs = d?.labs || [];
-  let rx = d?.prescriptions || [];
-  if (role === "patient") {
-    appts = mineAsPatient(user, appts);
-    labs = mineAsPatient(user, labs);
-    rx = mineAsPatient(user, rx);
-  } else if (role === "doctor") {
-    appts = appts.filter((a) => isMe(user, a.doctor));
-  }
+ // Each role only sees the rows that are theirs.
+let appts = d?.appointments || [];
+let labs = d?.labs || [];
+let rx = d?.prescriptions || [];
+
+if (role === "doctor") {
+  appts = appts.filter((a) => isMe(user, a.doctor));
+}
 
   // Every appointment still marked "Scheduled" counts as booked. If its date has
   // already passed it is flagged "Overdue" so it can be completed or cancelled.

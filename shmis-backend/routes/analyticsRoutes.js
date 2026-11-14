@@ -11,16 +11,49 @@ const {
     searchDoctors
 } = require("../controllers/analyticsController");
 
-router.get("/doctors-by-specialization", getDoctorsBySpecialization);
+const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 
-router.get("/doctors-by-hospital", getDoctorsByHospital);
+// Analytics - Admin and Doctor
+router.get(
+    "/doctors-by-specialization",
+    protect,
+    authorizeRoles("admin", "doctor"),
+    getDoctorsBySpecialization
+);
 
-router.get("/departments-by-hospital", getDepartmentsByHospital);
+router.get(
+    "/doctors-by-hospital",
+    protect,
+    authorizeRoles("admin", "doctor"),
+    getDoctorsByHospital
+);
 
-router.get("/patients-by-gender", getPatientsByGender);
+router.get(
+    "/departments-by-hospital",
+    protect,
+    authorizeRoles("admin", "doctor"),
+    getDepartmentsByHospital
+);
 
-router.get("/patients-by-blood-group", getPatientsByBloodGroup);
+router.get(
+    "/patients-by-gender",
+    protect,
+    authorizeRoles("admin", "doctor"),
+    getPatientsByGender
+);
 
-router.get("/search-doctors", searchDoctors);
+router.get(
+    "/patients-by-blood-group",
+    protect,
+    authorizeRoles("admin", "doctor"),
+    getPatientsByBloodGroup
+);
+
+router.get(
+    "/search-doctors",
+    protect,
+    authorizeRoles("admin", "doctor"),
+    searchDoctors
+);
 
 module.exports = router;

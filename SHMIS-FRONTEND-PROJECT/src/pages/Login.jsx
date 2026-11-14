@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "../api";
-import { DEMO_ACCOUNTS, ROLES } from "../auth";
+import { ROLES } from "../auth";
 
 export default function Login({ onSignedIn }) {
   const [role, setRole] = useState("admin");
@@ -11,7 +11,7 @@ export default function Login({ onSignedIn }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const demo = DEMO_ACCOUNTS.find((a) => a.role === role);
+  
 
   async function submit(e) {
     e.preventDefault();
@@ -72,7 +72,7 @@ export default function Login({ onSignedIn }) {
 
           <button className="login-submit" disabled={busy}>{busy ? "Logging in…" : "Log in"}</button>
 
-          <p className="login-demo">Demo account: {demo.username} / {demo.password}</p>
+          
         </form>
       </section>
     </div>

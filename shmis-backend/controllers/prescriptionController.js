@@ -54,7 +54,36 @@ const createPrescription = async (req, res) => {
         });
     }
 };
+// GET MY PRESCRIPTIONS - Patient only
+const getMyPrescriptions = async (req, res) => {
+    try {
+        if (!req.user.patient) {
+            return res.status(404).json({
+                success: false,
+                message: "No patient profile linked to this account."
+            });
+        }
 
+        const prescriptions = await Prescription.find({
+            patient: req.user.patient
+        })
+            .populate("patient", "name patientCode contactNumber")
+            .populate("doctor", "name doctorCode specialization")
+            .populate("hospital", "name hospitalCode");
+
+        res.status(200).json({
+            success: true,
+            count: prescriptions.length,
+            data: prescriptions
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
 // GET ALL
 const getPrescriptions = async (req, res) => {
     try {
@@ -169,6 +198,7 @@ module.exports = {
     createPrescription,
     getPrescriptions,
     getPrescriptionById,
+    getMyPrescriptions,
     updatePrescription,
     deletePrescription
 };

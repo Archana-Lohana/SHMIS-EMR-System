@@ -11,19 +11,21 @@ const {
     deleteHospital
 } = require("../controllers/hospitalController");
 
-// CREATE
-router.post("/", createHospital);
+const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 
-// READ ALL
-router.get("/", getHospitals);
+// CREATE - Admin only
+router.post("/", protect, authorizeRoles("admin"), createHospital);
 
-// READ SINGLE
-router.get("/:id", getHospitalById);
+// READ ALL - Admin and Doctor
+router.get("/", protect, authorizeRoles("admin", "doctor"), getHospitals);
 
-// UPDATE
-router.put("/:id", updateHospital);
+// READ SINGLE - Admin and Doctor
+router.get("/:id", protect, authorizeRoles("admin", "doctor"), getHospitalById);
 
-// DELETE
-router.delete("/:id", deleteHospital);
+// UPDATE - Admin only
+router.put("/:id", protect, authorizeRoles("admin"), updateHospital);
+
+// DELETE - Admin only
+router.delete("/:id", protect, authorizeRoles("admin"), deleteHospital);
 
 module.exports = router;

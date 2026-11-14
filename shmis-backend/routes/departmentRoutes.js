@@ -11,19 +11,21 @@ const {
     deleteDepartment
 } = require("../controllers/departmentController");
 
-// CREATE
-router.post("/", createDepartment);
+const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 
-// READ ALL
-router.get("/", getDepartments);
+// CREATE - Admin only
+router.post("/", protect, authorizeRoles("admin"), createDepartment);
 
-// READ SINGLE
-router.get("/:id", getDepartmentById);
+// READ ALL - Admin and Doctor
+router.get("/", protect, authorizeRoles("admin", "doctor"), getDepartments);
 
-// UPDATE
-router.put("/:id", updateDepartment);
+// READ SINGLE - Admin and Doctor
+router.get("/:id", protect, authorizeRoles("admin", "doctor"), getDepartmentById);
 
-// DELETE
-router.delete("/:id", deleteDepartment);
+// UPDATE - Admin only
+router.put("/:id", protect, authorizeRoles("admin"), updateDepartment);
+
+// DELETE - Admin only
+router.delete("/:id", protect, authorizeRoles("admin"), deleteDepartment);
 
 module.exports = router;

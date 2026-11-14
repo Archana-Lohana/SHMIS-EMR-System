@@ -54,6 +54,45 @@ const createAppointment = async (req, res) => {
         });
     }
 };
+// GET MY APPOINTMENTS - Patient only
+const getMyAppointments = async (req, res) => {
+    try {
+        if (!req.user.patient) {
+            return res.status(404).json({
+                success: false,
+                message: "No patient profile linked to this account."
+            });
+        }
+
+        console.log("LOGIN PATIENT ID:", req.user.patient);
+
+        console.log(
+            "MY APPOINTMENTS:",
+            await Appointment.find({ patient: req.user.patient })
+        );
+
+        const appointments = await Appointment.find({
+            patient: req.user.patient
+        })
+
+        
+            .populate("patient", "name patientCode contactNumber")
+            .populate("doctor", "name doctorCode specialization")
+            .populate("hospital", "name hospitalCode");
+
+        res.status(200).json({
+            success: true,
+            count: appointments.length,
+            data: appointments
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
 
 // GET ALL APPOINTMENTS
 const getAppointments = async (req, res) => {
@@ -162,6 +201,7 @@ module.exports = {
     createAppointment,
     getAppointments,
     getAppointmentById,
+    getMyAppointments,
     updateAppointment,
     deleteAppointment
 };
