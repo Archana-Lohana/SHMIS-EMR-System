@@ -2,9 +2,11 @@
 
 ## Project Overview
 
-The Sindh Health Management Information System (SHMIS) is a web-based healthcare management platform designed to organize hospital operations and patient medical records through a centralized system.
+The Sindh Health Management Information System (SHMIS) is a web-based healthcare management platform designed to manage hospital operations and electronic medical records through a centralized system.
 
-The platform provides modules for managing hospitals, departments, doctors, patients, appointments, clinical records, prescriptions, and laboratory tests.
+The platform provides a structured environment for managing hospitals, departments, doctors, patients, appointments, clinical records, prescriptions, and laboratory tests.
+
+It also includes secure authentication and role-based access control to ensure that users can access only the features and records permitted for their roles.
 
 ## Technologies Used
 
@@ -22,23 +24,61 @@ The platform provides modules for managing hospitals, departments, doctors, pati
 - Express.js
 - MongoDB
 - Mongoose
-- REST API
+- RESTful APIs
+- JSON Web Token (JWT)
+- bcrypt
+
+## User Roles & Permissions
+
+The system supports three user roles:
+
+### 1. Admin
+- Full access to the system.
+- Add, view, update, and delete records.
+- Manage hospitals, departments, doctors, and patients.
+- Manage appointments, clinical records, prescriptions, and laboratory tests.
+- Create login accounts for existing patients.
+- Access dashboard and analytics.
+
+### 2. Doctor
+- View relevant healthcare records.
+- View patient information and medical history.
+- View appointments, clinical records, prescriptions, and laboratory information.
+- Does not have permission to add, update, or delete records.
+
+### 3. Patient
+- Securely log in using assigned credentials.
+- View their own patient information.
+- Access their own appointments and medical records.
+- Cannot access other patients' private information or administrative analytics.
 
 ## System Modules
 
 1. **Dashboard** – Displays an overview of healthcare information and statistics.
-2. **Patient Management** – Add, view, update, and manage patient records.
+2. **Patient Management** – Manage patient profiles and records.
 3. **Hospital Management** – Manage hospital information.
 4. **Department Management** – Organize hospital departments.
 5. **Doctor Management** – Maintain doctor profiles and specializations.
 6. **Appointment Management** – Manage patient appointments.
 7. **Clinical Records** – Maintain patient clinical information.
-8. **Prescription Management** – Store prescription records.
+8. **Prescription Management** – Store and manage prescription records.
 9. **Laboratory Management** – Manage laboratory test records and reports.
+10. **Authentication & Authorization** – Secure login and role-based access control.
+11. **Analytics** – Display healthcare statistics and data summaries.
+
+## Authentication & Security
+
+- JWT-based user authentication.
+- Password hashing using bcrypt.
+- Protected API routes using authentication middleware.
+- Role-based authorization for Admin, Doctor, and Patient.
+- Patient login account creation by Admin.
+- Environment variables for sensitive configuration.
+- Restricted access to patient-specific records.
 
 ## Database Collections
 
-The system uses the following MongoDB collections:
+The system uses MongoDB collections including:
 
 - hospitals
 - departments
@@ -48,18 +88,24 @@ The system uses the following MongoDB collections:
 - clinicalrecords
 - prescriptions
 - labtests
+- users
 
 MongoDB ObjectId references are used to establish relationships between related records.
 
+Mongoose models define the structure and relationships of the database records.
+
 ## Key Features
 
-- RESTful API architecture
-- CRUD operations
-- MongoDB database integration
-- Search and filtering
-- Data visualization and analytics
-- Referenced documents using Mongoose
-- Organized backend structure with models, controllers, and routes
+- Full-stack MERN-based architecture.
+- RESTful API integration.
+- CRUD operations.
+- Secure authentication and authorization.
+- Role-based access control.
+- Patient-specific data access.
+- Search and filtering.
+- Dashboard and data visualization.
+- MongoDB document referencing.
+- Organized backend architecture using models, controllers, routes, and middleware.
 
 ## Project Structure
 
@@ -69,16 +115,21 @@ SHMIS-EMR-System/
 ├── shmis-backend/
 │   ├── config/
 │   ├── controllers/
+│   ├── middleware/
 │   ├── models/
 │   ├── routes/
+│   ├── scripts/
 │   ├── server.js
-│   └── package.json
+│   ├── package.json
+│   └── .env.example
 │
 └── SHMIS-FRONTEND-PROJECT/
     ├── public/
     ├── src/
-    ├── .env.example
+    │   ├── components/
+    │   └── pages/
     ├── package.json
+    ├── package-lock.json
     └── vite.config.js
 ```
 
@@ -99,48 +150,50 @@ cd SHMIS-EMR-System
 
 ### 2. Setup Backend
 
+Open terminal:
+
 ```bash
 cd shmis-backend
 npm install
 ```
 
-Create a `.env` file inside the backend folder:
+Create a `.env` file inside the `shmis-backend` folder.
+
+Configure your actual environment variables:
 
 ```env
 PORT=5000
-MONGO_URI=mongodb://127.0.0.1:27017/shmis_emr
+MONGO_URI=your_mongodb_connection
+JWT_SECRET=your_secret_key
 ```
 
-Start the backend:
+Start backend:
 
 ```bash
-npm start
+npm run dev
 ```
 
-The backend will run at:
+Backend URL:
 
 `http://localhost:5000`
 
 ### 3. Setup Frontend
 
-Open a separate terminal:
+Open a new terminal:
 
 ```bash
 cd SHMIS-FRONTEND-PROJECT
 npm install
 npm run dev
 ```
-
-Open the local URL displayed by Vite, usually:
-
+Frontend URL:
 `http://localhost:5173`
 
-Make sure the frontend API configuration points to the running backend.
-
 ## API Endpoints
-
 | Module | Endpoint |
 |---|---|
+| Authentication | `/api/auth/login` |
+| Patient Account Creation | `/api/auth/create-patient` |
 | Hospitals | `/api/hospitals` |
 | Departments | `/api/departments` |
 | Doctors | `/api/doctors` |
@@ -148,30 +201,27 @@ Make sure the frontend API configuration points to the running backend.
 | Appointments | `/api/appointments` |
 | Clinical Records | `/api/clinical-records` |
 | Prescriptions | `/api/prescriptions` |
-| Lab Tests | `/api/lab-tests` |
+| Laboratory Tests | `/api/lab-tests` |
 | Analytics | `/api/analytics` |
 
-## Security Note
+## Environment & Version Control
 
-- Environment variables are stored in `.env`.
-- The `.env` file must not be uploaded to GitHub.
-- `.env.example` can be used as a configuration template.
-- `node_modules` is excluded from version control.
+- Sensitive environment variables are stored in `.env`.
+- The `.env` file must never be uploaded to GitHub.
+- `.env.example` provides a configuration template.
+- `node_modules` and build output directories are excluded from version control.
+- JWT secrets and database credentials must remain private.
 
 ## Project Purpose
 
-This project is developed as an academic database management system project to demonstrate the practical implementation of database design, backend development, REST APIs, and healthcare information management.
+This project is developed as an academic database management system project to demonstrate the practical implementation of database design, MongoDB, backend development, REST APIs, authentication, authorization, and healthcare information management.
 
 ## Project Team
 
-This project is developed collaboratively by the following team members:
+This project is developed collaboratively by:
 
 1. **Archana Lohana**
 2. **Tanisha Kumari**
 3. **Twinkle Lohana**
 
 **GitHub Profile:** [Archana-Lohana](https://github.com/Archana-Lohana)
-
----
-
-*Academic Project – SHMIS & Unified EMR Platform*
