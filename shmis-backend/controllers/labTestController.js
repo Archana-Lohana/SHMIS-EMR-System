@@ -2,6 +2,7 @@ const LabTest = require("../models/LabTest");
 const Patient = require("../models/Patient");
 const Doctor = require("../models/Doctor");
 const Hospital = require("../models/Hospital");
+const Appointment = require("../models/Appointment");
 
 // CREATE
 const createLabTest = async (req, res) => {
@@ -87,7 +88,27 @@ const getMyLabTests = async (req, res) => {
 // GET ALL
 const getLabTests = async (req, res) => {
     try {
-        const tests = await LabTest.find()
+        let filter = {};
+
+        // Doctor can only see lab tests of assigned patients
+        if (req.user.role === "doctor") {
+
+            if (!req.user.doctor) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No doctor profile linked to this account."
+                });
+            }
+
+            const patientIds = await Appointment.distinct("patient", {
+                doctor: req.user.doctor
+            });
+
+            filter.patient = { $in: patientIds };
+        }
+
+        // Admin can see all lab tests
+        const tests = await LabTest.find(filter)
             .populate("patient", "name patientCode contactNumber")
             .populate("doctor", "name doctorCode specialization")
             .populate("hospital", "name hospitalCode");
@@ -109,7 +130,26 @@ const getLabTests = async (req, res) => {
 // GET BY ID
 const getLabTestById = async (req, res) => {
     try {
-        const test = await LabTest.findById(req.params.id)
+        let filter = { _id: req.params.id };
+
+        // Doctor can only access lab tests of assigned patients
+        if (req.user.role === "doctor") {
+
+            if (!req.user.doctor) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No doctor profile linked to this account."
+                });
+            }
+
+            const patientIds = await Appointment.distinct("patient", {
+                doctor: req.user.doctor
+            });
+
+            filter.patient = { $in: patientIds };
+        }
+
+        const test = await LabTest.findOne(filter)
             .populate("patient", "name patientCode contactNumber")
             .populate("doctor", "name doctorCode specialization")
             .populate("hospital", "name hospitalCode");
@@ -117,7 +157,7 @@ const getLabTestById = async (req, res) => {
         if (!test) {
             return res.status(404).json({
                 success: false,
-                message: "Lab test not found"
+                message: "Lab test not found or you do not have permission to view it."
             });
         }
 
@@ -133,6 +173,7 @@ const getLabTestById = async (req, res) => {
         });
     }
 };
+
 
 // UPDATE
 const updateLabTest = async (req, res) => {

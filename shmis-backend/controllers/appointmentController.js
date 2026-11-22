@@ -95,9 +95,26 @@ const getMyAppointments = async (req, res) => {
 };
 
 // GET ALL APPOINTMENTS
+// GET APPOINTMENTS
 const getAppointments = async (req, res) => {
     try {
-        const appointments = await Appointment.find()
+        let filter = {};
+
+        // Doctor can only see appointments assigned to them
+        if (req.user.role === "doctor") {
+
+            if (!req.user.doctor) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No doctor profile linked to this account."
+                });
+            }
+
+            filter.doctor = req.user.doctor;
+        }
+
+        // Admin can see all appointments
+        const appointments = await Appointment.find(filter)
             .populate("patient", "name patientCode contactNumber")
             .populate("doctor", "name doctorCode specialization")
             .populate("hospital", "name hospitalCode");
@@ -107,6 +124,7 @@ const getAppointments = async (req, res) => {
             count: appointments.length,
             data: appointments
         });
+
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -116,9 +134,26 @@ const getAppointments = async (req, res) => {
 };
 
 // GET APPOINTMENT BY ID
+
+// GET APPOINTMENT BY ID
 const getAppointmentById = async (req, res) => {
     try {
-        const appointment = await Appointment.findById(req.params.id)
+        let filter = { _id: req.params.id };
+
+        // Doctor can only access their own appointments
+        if (req.user.role === "doctor") {
+
+            if (!req.user.doctor) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No doctor profile linked to this account."
+                });
+            }
+
+            filter.doctor = req.user.doctor;
+        }
+
+        const appointment = await Appointment.findOne(filter)
             .populate("patient", "name patientCode contactNumber")
             .populate("doctor", "name doctorCode specialization")
             .populate("hospital", "name hospitalCode");
@@ -126,7 +161,7 @@ const getAppointmentById = async (req, res) => {
         if (!appointment) {
             return res.status(404).json({
                 success: false,
-                message: "Appointment not found"
+                message: "Appointment not found or you do not have permission to view it."
             });
         }
 
@@ -134,6 +169,7 @@ const getAppointmentById = async (req, res) => {
             success: true,
             data: appointment
         });
+
     } catch (error) {
         res.status(400).json({
             success: false,

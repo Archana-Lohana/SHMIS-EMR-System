@@ -9,15 +9,24 @@ export const ROLES = {
 };
 
 // Which pages each role may open. "" is the Dashboard.
+
 const PAGES = {
   admin: null,
-  doctor: null,
+  doctor: [
+    "",
+    "patients",
+    "appointments",
+    "clinical-records",
+    "prescriptions",
+    "lab-tests",
+  ],
   patient: ["", "appointments", "clinical-records", "prescriptions", "lab-tests"],
 };
+
 // Who may add, edit or delete on each page.
 const WRITE = {
   admin: null,
-  doctor: [],
+  doctor: ["clinical-records", "prescriptions"],
   patient: [],
 };
 

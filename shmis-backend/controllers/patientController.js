@@ -1,5 +1,6 @@
 
 const Patient = require("../models/Patient");
+const Appointment = require("../models/Appointment");
 
 // CREATE PATIENT
 const createPatient = async (req, res) => {
@@ -22,13 +23,34 @@ const createPatient = async (req, res) => {
 // GET ALL PATIENTS
 const getPatients = async (req, res) => {
     try {
-        const patients = await Patient.find();
+        let filter = {};
+
+        // Doctor can only see assigned patients
+        if (req.user.role === "doctor") {
+
+            if (!req.user.doctor) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No doctor profile linked to this account."
+                });
+            }
+
+            const patientIds = await Appointment.distinct(
+                "patient",
+                { doctor: req.user.doctor }
+            );
+
+            filter._id = { $in: patientIds };
+        }
+
+        const patients = await Patient.find(filter);
 
         res.status(200).json({
             success: true,
             count: patients.length,
             data: patients
         });
+
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -36,6 +58,7 @@ const getPatients = async (req, res) => {
         });
     }
 };
+
 // GET LOGGED-IN PATIENT PROFILE
 const getMyPatientProfile = async (req, res) => {
     try {
@@ -67,15 +90,39 @@ const getMyPatientProfile = async (req, res) => {
         });
     }
 };
+
 // GET PATIENT BY ID
 const getPatientById = async (req, res) => {
     try {
-        const patient = await Patient.findById(req.params.id);
+        let filter = { _id: req.params.id };
+
+        // Doctor can only access assigned patients
+        if (req.user.role === "doctor") {
+
+            if (!req.user.doctor) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No doctor profile linked to this account."
+                });
+            }
+
+            const patientIds = await Appointment.distinct(
+                "patient",
+                { doctor: req.user.doctor }
+            );
+
+            filter._id = {
+                $in: patientIds,
+                $eq: req.params.id
+            };
+        }
+
+        const patient = await Patient.findOne(filter);
 
         if (!patient) {
             return res.status(404).json({
                 success: false,
-                message: "Patient not found"
+                message: "Patient not found or you do not have access."
             });
         }
 
@@ -83,6 +130,7 @@ const getPatientById = async (req, res) => {
             success: true,
             data: patient
         });
+
     } catch (error) {
         res.status(400).json({
             success: false,

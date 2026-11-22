@@ -6,16 +6,19 @@ import StatusBadge from "../components/StatusBadge";
 
 const paths = {
   patients: "/patients", doctors: "/doctors", hospitals: "/hospitals", departments: "/departments",
-  appointments: "/appointments", labs: "/lab-tests", prescriptions: "/prescriptions",
+  appointments: "/appointments",
+clinicalRecords: "/clinical-records",
+labs: "/lab-tests",
+prescriptions: "/prescriptions",
   gender: "/analytics/patients-by-gender", blood: "/analytics/patients-by-blood-group",
   specialization: "/analytics/doctors-by-specialization", byHospital: "/analytics/doctors-by-hospital",
 };
 
 // What each role's dashboard loads.
 const needs = {
-  admin: ["patients", "doctors", "hospitals", "departments", "appointments", "labs", "gender", "blood", "specialization", "byHospital"],
-  doctor: ["patients", "appointments", "labs", "prescriptions", "gender", "blood"],
-  patient: ["appointments", "labs", "prescriptions"],
+  admin: ["patients", "doctors", "hospitals", "departments", "appointments", "clinicalRecords", "labs", "gender", "blood", "specialization", "byHospital"],
+doctor: ["patients", "appointments", "clinicalRecords", "labs", "prescriptions", "gender", "blood"],
+  patient: ["appointments", "clinicalRecords", "labs", "prescriptions"],
 };
 
 // A ranked list with a thin share bar: easier to read than a column chart for a handful of groups.
@@ -92,33 +95,38 @@ if (role === "doctor") {
   const waiting = labs.filter((t) => t.reportStatus !== "Completed");
   const activeRx = rx.filter((p) => p.status === "Active");
 
-  let figures = null;
-  if (d) {
-    if (role === "admin") {
-      figures = [
-        ["Patients", d.patients.length, "patients"],
-        ["Doctors", d.doctors.length, "doctors"],
-        ["Hospitals", d.hospitals.length, "hospitals"],
-        ["Departments", d.departments.length, "departments"],
-        ["Booked appointments", d.appointments.filter((a) => a.status === "Scheduled").length, "appointments"],
-        ["Lab reports waiting", waiting.length, "lab-tests"],
-      ];
-    } else if (role === "doctor") {
-      figures = [
-        ["Patients", d.patients.length, "patients"],
-        ["My upcoming appointments", booked.length, "appointments"],
-        ["Lab reports waiting", waiting.length, "lab-tests"],
-        ["Active prescriptions", activeRx.length, "prescriptions"],
-      ];
-    } else {
-      figures = [
-        ["Upcoming appointments", booked.length, "appointments"],
-        ["Active prescriptions", activeRx.length, "prescriptions"],
-        ["Lab reports waiting", waiting.length, "lab-tests"],
-      ];
-    }
+  
+let figures = null;
+
+if (d) {
+  if (role === "admin") {
+    figures = [
+      ["Patients", d.patients.length, "patients"],
+      ["Doctors", d.doctors.length, "doctors"],
+      ["Hospitals", d.hospitals.length, "hospitals"],
+      ["Departments", d.departments.length, "departments"],
+      ["Booked appointments", d.appointments.filter((a) => a.status === "Scheduled").length, "appointments"],
+      ["Lab reports waiting", waiting.length, "lab-tests"],
+    ];
+  } else if (role === "doctor") {
+    figures = [
+      ["My Patients", d.patients.length, "patients"],
+      ["My upcoming appointments", booked.length, "appointments"],
+      ["Clinical Records", d.clinicalRecords.length, "clinical-records"],
+      ["Lab reports waiting", waiting.length, "lab-tests"],
+      ["Active prescriptions", activeRx.length, "prescriptions"],
+    ];
+  } else {
+    figures = [
+      ["Upcoming appointments", booked.length, "appointments"],
+      ["Active prescriptions", activeRx.length, "prescriptions"],
+      ["Lab reports waiting", waiting.length, "lab-tests"],
+    ];
   }
-  const placeholders = role === "admin" ? 6 : role === "doctor" ? 4 : 3;
+}
+
+const placeholders = role === "admin" ? 6 : role === "doctor" ? 5 : 3;
+
 
   const mineOnly = role !== "admin";
   const comingTitle = role === "patient" ? "My appointments" : role === "doctor" ? "My upcoming appointments" : "Coming up";

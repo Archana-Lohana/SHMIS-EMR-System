@@ -12,8 +12,8 @@ const {
 
 const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 
-// CREATE - Admin only
-router.post("/", protect, authorizeRoles("admin"), createPrescription);
+// CREATE - Admin and Doctor
+router.post("/", protect, authorizeRoles("admin", "doctor"), createPrescription);
 
 // READ ALL - Admin and Doctor
 router.get("/", protect, authorizeRoles("admin", "doctor"), getPrescriptions);
@@ -24,9 +24,8 @@ router.get("/my", protect, authorizeRoles("patient"), getMyPrescriptions);
 // READ SINGLE - Admin and Doctor
 router.get("/:id", protect, authorizeRoles("admin", "doctor"), getPrescriptionById);
 
-// UPDATE - Admin only
-router.put("/:id", protect, authorizeRoles("admin"), updatePrescription);
-
+// UPDATE - Admin and Doctor
+router.put("/:id", protect, authorizeRoles("admin", "doctor"), updatePrescription);
 // DELETE - Admin only
 router.delete("/:id", protect, authorizeRoles("admin"), deletePrescription);
 

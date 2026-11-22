@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { createItem, errorText, getList, updateItem } from "../api";
+import { createItem, errorText, getDoctorProfile, getList, updateItem } from "../api";
 import { defaultValue, optionOf } from "../resources.jsx";
 import { getIn, prune, setIn, toDateInput, todayInput } from "../utils";
 import Combobox from "./Combobox";
@@ -35,15 +35,66 @@ function buildBody(config, values) {
   return prune(body);
 }
 
-export default function RecordForm({ config, row, onSaved, onCancel, formId }) {
+export default function RecordForm({ config, row, onSaved, onCancel, formId, user }) {
   const [values, setValues] = useState(() => initialValues(config, row));
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [lookups, setLookups] = useState({});
+const [doctorProfile, setDoctorProfile] = useState(null);
+const [doctorProfileError, setDoctorProfileError] = useState("");
 
   // Load whichever collections the dropdowns need.
-  const sources = useMemo(() => [...new Set(config.fields.filter((f) => f.type === "ref").map((f) => f.source))], [config]);
+ 
+  // Load whichever collections the dropdowns need.
+  const sources = useMemo(
+    () => [...new Set(config.fields.filter((f) => f.type === "ref").map((f) => f.source))],
+    [config]
+  );
+
+  // Load logged-in Doctor's profile and hospital.
+  useEffect(() => {
+    if (
+      user?.role !== "doctor" ||
+      !["/clinical-records", "/prescriptions"].includes(config.endpoint)
+    ) {
+      return;
+    }
+
+    let alive = true;
+
+    async function loadDoctorProfile() {
+      try {
+        const profile = await getDoctorProfile(user.linkId);
+        if (alive) setDoctorProfile(profile);
+      } catch (error) {
+        if (alive) setDoctorProfileError(errorText(error));
+      }
+    }
+
+    if (user.linkId) {
+      loadDoctorProfile();
+    } else {
+      setDoctorProfileError("Doctor profile is not linked to this account.");
+    }
+
+    return () => {
+      alive = false;
+    };
+  }, [user?.role, user?.linkId, config.endpoint]);
+
+  // Automatically select Doctor's linked hospital.
+  useEffect(() => {
+    if (user?.role !== "doctor" || !doctorProfile?.hospital?._id) {
+      return;
+    }
+
+    setValues((prev) =>
+      setIn(prev, "hospital", doctorProfile.hospital._id)
+    );
+  }, [user?.role, doctorProfile]);
+
+
   useEffect(() => {
     let alive = true;
     sources.forEach((s) => {
@@ -119,13 +170,28 @@ export default function RecordForm({ config, row, onSaved, onCancel, formId }) {
       );
     } else if (f.type === "textarea") {
       control = <textarea id={id} className="input" rows={3} value={val} onChange={(e) => change(f.name, e.target.value)} />;
+    
+    } else if (f.type === "ref" && f.name === "hospital" && user?.role === "doctor") {
+      control = (
+        <input
+          id={id}
+          className="input"
+          value={
+            doctorProfile?.hospital?.name ||
+            (doctorProfileError ? doctorProfileError : "Loading hospital...")
+          }
+          readOnly
+        />
+      );
     } else if (f.type === "ref") {
       let options = (lookups[f.source] || []).filter((o) => {
         if (!f.needs) return true;
         const parent = getIn(values, f.needs.field);
         return parent && f.needs.match(o) === parent;
       }).map(optionOf[f.source]);
+
       const blocked = f.needs && !getIn(values, f.needs.field);
+
       control = (
         <Combobox
           id={id}
@@ -136,6 +202,9 @@ export default function RecordForm({ config, row, onSaved, onCancel, formId }) {
           onChange={(v) => change(f.name, v)}
         />
       );
+
+      
+      
     } else if (f.type === "medicines") {
       control = (
         <div className="meds">

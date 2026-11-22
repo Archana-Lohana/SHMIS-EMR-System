@@ -108,3 +108,11 @@ export async function createPatientAccount(data) {
   const res = await http.post("/auth/create-patient", data);
   return res.data;
 }
+export async function createDoctorAccount(data) {
+  const res = await http.post("/auth/create-doctor", data);
+  return res.data;
+}
+
+export async function getDoctorProfile(id) {
+  return getOne(`/doctors/${id}`);
+}

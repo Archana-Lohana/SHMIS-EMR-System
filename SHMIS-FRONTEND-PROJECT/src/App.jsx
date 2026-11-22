@@ -8,18 +8,53 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import ResourcePage from "./pages/ResourcePage";
 
-const nav = [
+
+const adminNav = [
   { group: null, items: [{ key: "", label: "Dashboard", icon: LayoutGrid }] },
-  { group: "People", items: [{ key: "patients", icon: Users }, { key: "doctors", icon: Stethoscope }] },
-  { group: "Facilities", items: [{ key: "hospitals", icon: Building2 }, { key: "departments", icon: Layers }] },
+  {
+    group: "People",
+    items: [
+      { key: "patients", icon: Users },
+      { key: "doctors", icon: Stethoscope },
+    ],
+  },
+  {
+    group: "Facilities",
+    items: [
+      { key: "hospitals", icon: Building2 },
+      { key: "departments", icon: Layers },
+    ],
+  },
   {
     group: "Clinical",
     items: [
-      { key: "appointments", icon: CalendarDays }, { key: "clinical-records", icon: ClipboardList },
-      { key: "prescriptions", icon: Pill }, { key: "lab-tests", icon: FlaskConical },
+      { key: "appointments", icon: CalendarDays },
+      { key: "clinical-records", icon: ClipboardList },
+      { key: "prescriptions", icon: Pill },
+      { key: "lab-tests", icon: FlaskConical },
     ],
   },
 ];
+
+const doctorNav = [
+  { group: null, items: [{ key: "", label: "Dashboard", icon: LayoutGrid }] },
+  {
+    group: "My Workspace",
+    items: [
+      { key: "patients", label: "My Patients", icon: Users },
+      { key: "appointments", label: "My Appointments", icon: CalendarDays },
+    ],
+  },
+  {
+    group: "Medical Records",
+    items: [
+      { key: "clinical-records", label: "Clinical Records", icon: ClipboardList },
+      { key: "prescriptions", label: "Prescriptions", icon: Pill },
+      { key: "lab-tests", label: "Lab Reports", icon: FlaskConical },
+    ],
+  },
+];
+
 
 const useRoute = () => {
   const read = () => window.location.hash.replace(/^#\/?/, "");
@@ -73,9 +108,14 @@ function Workspace({ user, onSignOut }) {
     window.scrollTo(0, 0);
   }, [route, config]);
 
-  const groups = nav
-    .map((g) => ({ ...g, items: g.items.filter((i) => canOpen(user.role, i.key)) }))
-    .filter((g) => g.items.length);
+  const navigation = user.role === "doctor" ? doctorNav : adminNav;
+
+const groups = navigation
+  .map((g) => ({
+    ...g,
+    items: g.items.filter((i) => canOpen(user.role, i.key)),
+  }))
+  .filter((g) => g.items.length);
   const current = allowed ? route : "";
 
   return (

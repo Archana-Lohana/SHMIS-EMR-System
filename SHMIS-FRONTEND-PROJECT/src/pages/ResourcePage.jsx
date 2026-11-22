@@ -1,12 +1,19 @@
 import { useMemo, useState } from "react";
 import { mineAsPatient } from "../auth";
 import { ArrowDown, ArrowUp, Download, Plus, Search } from "lucide-react";
-import { createPatientAccount, deleteItem, errorText, useList } from "../api";
+import {
+  createPatientAccount,
+  createDoctorAccount,
+  deleteItem,
+  errorText,
+  useList
+} from "../api";
 import { downloadCSV, number } from "../utils";
 import Drawer from "../components/Drawer";
 import RecordForm from "../components/RecordForm";
 import RecordView from "../components/RecordView";
 import StatusBadge from "../components/StatusBadge";
+
 
 const PAGE_SIZE = 12;
 
@@ -71,8 +78,7 @@ const [creatingLogin, setCreatingLogin] = useState(false);
     } finally {
       setDeleting(false);
     }
-  }
-  async function handleCreateLogin(e) {
+  }async function handleCreateLogin(e) {
   e.preventDefault();
 
   if (!panel?.row?._id) return;
@@ -80,13 +86,24 @@ const [creatingLogin, setCreatingLogin] = useState(false);
   setCreatingLogin(true);
 
   try {
-    await createPatientAccount({
-      patientId: panel.row._id,
-      username: loginUsername,
-      password: loginPassword
-    });
+    if (config.endpoint === "/doctors") {
+      await createDoctorAccount({
+        doctorId: panel.row._id,
+        username: loginUsername,
+        password: loginPassword
+      });
 
-    toast("Patient login account created successfully.");
+      toast("Doctor login account created successfully.");
+    } else {
+      await createPatientAccount({
+        patientId: panel.row._id,
+        username: loginUsername,
+        password: loginPassword
+      });
+
+      toast("Patient login account created successfully.");
+    }
+
     setShowLoginForm(false);
     setLoginUsername("");
     setLoginPassword("");
@@ -97,6 +114,7 @@ const [creatingLogin, setCreatingLogin] = useState(false);
   }
 }
 
+
   function exportCSV() {
     downloadCSV(
       `shmis-${config.endpoint.slice(1)}-${new Date().toISOString().slice(0, 10)}.csv`,
@@ -106,7 +124,7 @@ const [creatingLogin, setCreatingLogin] = useState(false);
   }
 
   const isPatient = config.endpoint === "/patients";
-
+const isDoctor = config.endpoint === "/doctors";
   return (
     <>
       <div className="page-head">
@@ -224,7 +242,7 @@ const [creatingLogin, setCreatingLogin] = useState(false);
             ) : (
               <>
                 <>
-  {isPatient && user?.role === "admin" && (
+  {(isPatient || isDoctor) && user?.role === "admin" && (
     <button
       className="btn"
       onClick={() => setShowLoginForm(true)}
@@ -233,18 +251,32 @@ const [creatingLogin, setCreatingLogin] = useState(false);
     </button>
   )}
 
-  <button className="text-btn danger" onClick={() => setConfirmDelete(true)}>Delete</button>
-  <button className="btn primary" onClick={() => setPanel({ mode: "form", row: panel.row })}>Edit</button>
+ {user?.role === "admin" && (
+  <button
+    className="text-btn danger"
+    onClick={() => setConfirmDelete(true)}
+  >
+    Delete
+  </button>
+)}
+
+{writable && (
+  <button
+    className="btn primary"
+    onClick={() => setPanel({ mode: "form", row: panel.row })}
+  >
+    Edit
+  </button>
+)}
 </>
               </>
             )
           }
         >
           <RecordView config={config} row={panel.row} isPatient={isPatient} />
-          {showLoginForm && isPatient && user?.role === "admin" && (
+          {showLoginForm && (isPatient || isDoctor) && user?.role === "admin" && (
   <form onSubmit={handleCreateLogin} className="form-grid">
-    <h3>Create Patient Login</h3>
-
+    <h3>Create {isDoctor ? "Doctor" : "Patient"} Login</h3>
     <p>
       Create login credentials for {panel.row.name}.
     </p>
@@ -297,8 +329,9 @@ const [creatingLogin, setCreatingLogin] = useState(false);
       {panel?.mode === "form" && (
         <Drawer title={panel.row ? `Edit ${config.singular}` : `New ${config.singular}`} sub={panel.row ? config.viewSub(panel.row) : null} onClose={closePanel}>
           <RecordForm
-            config={config}
-            row={panel.row}
+  config={config}
+  row={panel.row}
+  user={user}
             onCancel={closePanel}
             onSaved={(_, what) => {
               toast(`The ${config.singular} was ${what === "created" ? "added" : "updated"}.`);

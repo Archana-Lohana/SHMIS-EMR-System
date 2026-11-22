@@ -1,9 +1,11 @@
+
 const express = require("express");
 const router = express.Router();
 
 const {
     loginUser,
-    createPatientAccount
+    createPatientAccount,
+    createDoctorAccount
 } = require("../controllers/authController");
 
 const {
@@ -20,6 +22,14 @@ router.post(
     protect,
     authorizeRoles("admin"),
     createPatientAccount
+);
+
+// Create Doctor Account - Admin only
+router.post(
+    "/create-doctor",
+    protect,
+    authorizeRoles("admin"),
+    createDoctorAccount
 );
 
 module.exports = router;

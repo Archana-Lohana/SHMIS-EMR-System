@@ -13,8 +13,8 @@ const {
 
 const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 
-// CREATE - Admin only
-router.post("/", protect, authorizeRoles("admin"), createClinicalRecord);
+// CREATE - Admin and Doctor
+router.post("/", protect, authorizeRoles("admin", "doctor"), createClinicalRecord);
 
 // READ ALL - Admin and Doctor
 router.get("/", protect, authorizeRoles("admin", "doctor"), getClinicalRecords);
@@ -25,8 +25,8 @@ router.get("/my", protect, authorizeRoles("patient"), getMyClinicalRecords);
 // READ SINGLE - Admin and Doctor
 router.get("/:id", protect, authorizeRoles("admin", "doctor"), getClinicalRecordById);
 
-// UPDATE - Admin only
-router.put("/:id", protect, authorizeRoles("admin"), updateClinicalRecord);
+// UPDATE - Admin and Doctor
+router.put("/:id", protect, authorizeRoles("admin", "doctor"), updateClinicalRecord);
 
 // DELETE - Admin only
 router.delete("/:id", protect, authorizeRoles("admin"), deleteClinicalRecord);
