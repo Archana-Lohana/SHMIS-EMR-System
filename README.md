@@ -2,9 +2,9 @@
 
 ## Project Overview
 
-The Sindh Health Management Information System (SHMIS) is a web-based healthcare management platform designed to manage hospital operations and electronic medical records through a centralized system.
+The Sindh Health Management Information System (SHMIS) is a full-stack, web-based healthcare management platform designed to manage hospital operations and electronic medical records through a centralized system.
 
-The platform provides a structured environment for managing hospitals, departments, doctors, patients, appointments, clinical records, prescriptions, and laboratory tests.
+The platform provides an organized environment for managing hospitals, departments, doctors, patients, appointments, clinical records, prescriptions, and laboratory tests.
 
 It also includes secure authentication and role-based access control to ensure that users can access only the features and records permitted for their roles.
 
@@ -43,8 +43,11 @@ The system supports three user roles:
 ### 2. Doctor
 - View relevant healthcare records.
 - View patient information and medical history.
-- View appointments, clinical records, prescriptions, and laboratory information.
-- Does not have permission to add, update, or delete records.
+- View assigned appointments and relevant healthcare information.
+- Add, view, and update clinical records.
+- Add, view, and update prescriptions.
+- View relevant laboratory information.
+- Cannot delete clinical records or prescriptions.
 
 ### 3. Patient
 - Securely log in using assigned credentials.
@@ -80,19 +83,19 @@ The system supports three user roles:
 
 The system uses MongoDB collections including:
 
-- hospitals
-- departments
-- doctors
-- patients
-- appointments
-- clinicalrecords
-- prescriptions
-- labtests
-- users
+- `hospitals`
+- `departments`
+- `doctors`
+- `patients`
+- `appointments`
+- `clinicalrecords`
+- `prescriptions`
+- `labtests`
+- `users`
 
 MongoDB ObjectId references are used to establish relationships between related records.
 
-Mongoose models define the structure and relationships of the database records.
+Mongoose models define the structure and relationships of database records.
 
 ## Key Features
 
@@ -150,7 +153,7 @@ cd SHMIS-EMR-System
 
 ### 2. Setup Backend
 
-Open terminal:
+Open a terminal:
 
 ```bash
 cd shmis-backend
@@ -159,7 +162,7 @@ npm install
 
 Create a `.env` file inside the `shmis-backend` folder.
 
-Configure your actual environment variables:
+Configure the environment variables:
 
 ```env
 PORT=5000
@@ -167,7 +170,7 @@ MONGO_URI=your_mongodb_connection
 JWT_SECRET=your_secret_key
 ```
 
-Start backend:
+Start the backend:
 
 ```bash
 npm run dev
@@ -179,17 +182,20 @@ Backend URL:
 
 ### 3. Setup Frontend
 
-Open a new terminal:
+Open a new terminal from the project root:
 
 ```bash
 cd SHMIS-FRONTEND-PROJECT
 npm install
 npm run dev
 ```
+
 Frontend URL:
+
 `http://localhost:5173`
 
 ## API Endpoints
+
 | Module | Endpoint |
 |---|---|
 | Authentication | `/api/auth/login` |
@@ -214,7 +220,7 @@ Frontend URL:
 
 ## Project Purpose
 
-This project is developed as an academic database management system project to demonstrate the practical implementation of database design, MongoDB, backend development, REST APIs, authentication, authorization, and healthcare information management.
+This project is developed as an academic Database Management System (DBMS) project to demonstrate the practical implementation of database design, MongoDB, backend development, REST APIs, authentication, authorization, and healthcare information management.
 
 ## Project Team
 
